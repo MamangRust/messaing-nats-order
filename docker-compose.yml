@@ -1,0 +1,39 @@
+version: '3.8'
+ 
+services:
+  nats:
+    image: nats:alpine3.20
+    ports:
+      - "4222:4222"
+    networks:
+      - my-network
+ 
+  email-service:
+    build:
+      context: ./email-service
+    restart: always
+    container_name: email-nats-service
+    environment:
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      - nats
+    networks:
+      - my-network
+ 
+  order-service:
+    build:
+      context: ./order-service
+    restart: always
+    container_name: order-nats-service
+    ports:
+      - "5000:5000"
+    environment:
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      - nats
+    networks:
+      - my-network
+ 
+networks:
+  my-network:
+    driver: bridge
